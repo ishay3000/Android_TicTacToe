@@ -1,6 +1,7 @@
 package com.example.ishaycena.tic_tac_toe;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
@@ -12,6 +13,7 @@ import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -52,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
      * initiates the game board (linear layout(s))
      * @param ctx context to be displayed in
      */
-    protected void InitGameBoard(Context ctx) {
+    protected void InitGameBoard(final Context ctx) {
         LinearLayout layout = findViewById(R.id.lnMain);
         gameBoard = new LinearLayout[3];
         InitPlayers();
@@ -61,15 +63,38 @@ public class MainActivity extends AppCompatActivity {
         listener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (v instanceof ImageButton){
-                    //TODO: add logic here
+                if (v instanceof ImageButton) {
                     Tic_Tac_Toe.PlayTurn((ImageButton) v);
 
+                    try {
+                        Player player = Tic_Tac_Toe.CheckForWinners();
+
+
+                        if (player != null) {
+                            int circle = R.mipmap.ic_circle;
+                            int X = R.mipmap.ic_x;
+                            int result = -1;
+                            if (player.getImgResource() == circle) {
+                                Toast.makeText(MainActivity.this, "The winner is the Circle !", Toast.LENGTH_LONG).show();
+                            } else if (player.getImgResource() == X) {
+                                Toast.makeText(MainActivity.this, "The winner is the X !", Toast.LENGTH_LONG).show();
+                            }
+
+                            result = (player.getImgResource() == circle ? circle : X);
+
+                            Intent intent = new Intent(MainActivity.this, ResultsActivity.class);
+                            intent.putExtra("GAME_RESULT", result);
+                            startActivity(intent);
+                        }
+                    }catch (Exception ex){
+                        Toast.makeText(MainActivity.this, ex.getMessage(), Toast.LENGTH_LONG).show();
+                    }
                     // disabling the window
                     getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
                             WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
 
                     final Point AI_Coord = Tic_Tac_Toe.AITurn();
+
 
                     tv.setText("Thinking... how should I play... ?");
                     new Handler().postDelayed(new Runnable() {
@@ -79,12 +104,33 @@ public class MainActivity extends AppCompatActivity {
                             if (AI_Coord != null) {
                                 Tic_Tac_Toe.PlayTurn(buttons[AI_Coord.getX()][AI_Coord.getY()]);
 
-                                // enablign window touches after the computer finished playing
+                                // enabling window touches after the computer finished playing
                                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
                             }
                         }
-                    }, 1500);
+                    }, 1000);
 
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            Player player1 = Tic_Tac_Toe.CheckForWinners();
+
+                            if (player1 != null) {
+                                int circle = R.mipmap.ic_circle;
+                                int X = R.mipmap.ic_x;
+                                if (player1.getImgResource() == circle) {
+                                    Toast.makeText(MainActivity.this, "The winner is the Circle !", Toast.LENGTH_LONG).show();
+                                } else if (player1.getImgResource() == X) {
+                                    Toast.makeText(MainActivity.this, "The winner is the X !", Toast.LENGTH_LONG).show();
+                                }
+
+                                int result = (player1.getImgResource() == circle ? circle : X);
+                                Intent intent = new Intent(MainActivity.this, ResultsActivity.class);
+                                intent.putExtra("GAME_RESULT", result);
+                                startActivity(intent);
+                            }
+                        }
+                    }, 1500);
 
                 }
             }
